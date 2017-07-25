@@ -10,19 +10,42 @@ namespace FileFlowWriting
     class Program
     {
         static void Main(string[] args)
-        {
-            // путь к файлу
-            string folderName = @"c:\Temp";
-            Directory.CreateDirectory(folderName);            
-            string fileName = "Temp.txt";
-            string fileName2 = "Temp2.txt";
-            string fileName3 = "Temp3.txt";
-            string folderName1= Path.Combine(folderName, fileName);
-            string folderName2 = Path.Combine(folderName, fileName2);
-            string folderName3 = Path.Combine(folderName, fileName3);
+        {           
+            string folderName = @"c:\Temp"; // путь к файлу
+            string fileName = "Temp.txt";//  имя файла
 
+            // Создаем дирректорию если ее нет
+            DirectoryInfo dirInfo = new DirectoryInfo(folderName);
+            if (!dirInfo.Exists)
+            {
+                dirInfo.Create();                
+            }
 
+            string fullFolderName = Path.Combine(folderName, fileName);
 
+            // Создаем файл если его нет
+            FileInfo fi = new FileInfo(fullFolderName);
+            if (!fi.Exists)
+            {
+                using (StreamWriter sw = fi.CreateText())
+                {
+                    sw.WriteLine("Этот текст создан при создании файла в основном потоке");
+                    sw.WriteLine("");
+                }
+            }
+
+            //Читаем файл в консоль
+            using (StreamReader sr = fi.OpenText())
+            {
+                string s = "";
+                while ((s = sr.ReadLine()) != null)
+                {
+                    Console.WriteLine(s);
+                }
+            }
+
+            
+            /*
             // These examples assume a "C:\Users\Public\TestFolder" folder on your machine.
             // You can modify the path if necessary.
 
@@ -64,7 +87,7 @@ namespace FileFlowWriting
             {
                 file.WriteLine("Fourth line");
             }
-
+            */
 
             Console.WriteLine("Press any key to exit.");
             Console.ReadKey();
