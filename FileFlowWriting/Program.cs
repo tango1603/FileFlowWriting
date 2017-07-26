@@ -17,8 +17,10 @@ namespace FileFlowWriting
         static void Main(string[] args)
         {
             //***Подготовительная работа с файлом***
-            string folderName = @"c:\Temp"; // путь к файлу
-            string fileName = "Temp.txt";//  имя файла         
+            // путь к файлу
+            string folderName = @"c:\Temp";
+            //  имя файла 
+            string fileName = "Temp.txt";        
             // Создаем дирректорию если ее нет
             DirectoryInfo dirInfo = new DirectoryInfo(folderName);
             if (!dirInfo.Exists)
@@ -65,13 +67,15 @@ namespace FileFlowWriting
             {
                 lock (locked)
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;     // Устанавливаем красный цвет символов    
+                    // Устанавливаем красный цвет символов  
+                    Console.ForegroundColor = ConsoleColor.Red;       
                     Console.WriteLine("Пишет в файл ВТОРОЙ поток:");
                     using (StreamWriter sw = new StreamWriter((string)fullFolderFileName, true, Encoding.Default))
                     {
                         sw.WriteLine("Этот текст создан во ВТОРОМ потоке");
                     }
-                    Console.ResetColor(); // Устанавливаем белый цвет символов
+                    // Устанавливаем белый цвет символов
+                    Console.ResetColor(); 
                     Thread.Sleep(300);
                 }
             }                 
