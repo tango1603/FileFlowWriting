@@ -3,94 +3,169 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FileFlowWriting
 {
     class Program
     {
+        static AutoResetEvent waitHandler = new AutoResetEvent(true);
+        static string fullFolderFileName;
+
         static void Main(string[] args)
-        {           
+        {
+            //******************************************Подготовительная работа с файлом*********************************************
             string folderName = @"c:\Temp"; // путь к файлу
             string fileName = "Temp.txt";//  имя файла
+            
 
             // Создаем дирректорию если ее нет
             DirectoryInfo dirInfo = new DirectoryInfo(folderName);
             if (!dirInfo.Exists)
             {
-                dirInfo.Create();                
+                dirInfo.Create();
             }
 
-            string fullFolderName = Path.Combine(folderName, fileName);
+            fullFolderFileName = Path.Combine(folderName, fileName);
 
             // Создаем файл если его нет
-            FileInfo fi = new FileInfo(fullFolderName);
+            FileInfo fi = new FileInfo(fullFolderFileName);
             if (!fi.Exists)
             {
-                using (StreamWriter sw = fi.CreateText())
+                using (StreamWriter sw = new StreamWriter(fullFolderFileName, false, Encoding.Default))
                 {
-                    sw.WriteLine("Этот текст создан при создании файла в основном потоке");
+                    sw.WriteLine("Этот текст создан при создании файла в ГЛАВНОМ потоке");
+                    sw.WriteLine("Этот текст создан при создании файла в ГЛАВНОМ потоке");
+                    sw.WriteLine("Этот текст создан при создании файла в ГЛАВНОМ потоке");
+                    sw.WriteLine("Этот текст создан при создании файла в ГЛАВНОМ потоке");
                     sw.WriteLine("");
                 }
             }
 
-            //Читаем файл в консоль
-            using (StreamReader sr = fi.OpenText())
-            {
-                string s = "";
-                while ((s = sr.ReadLine()) != null)
-                {
-                    Console.WriteLine(s);
-                }
-            }
+            // создаем новый поток
+            Thread myThread = new Thread(Count);
+            myThread.Start(); // запускаем поток
 
             
-            /*
-            // These examples assume a "C:\Users\Public\TestFolder" folder on your machine.
-            // You can modify the path if necessary.
-
-
-            // Example #1: Write an array of strings to a file.
-            // Create a string array that consists of three lines.
-            string[] lines = { "First line", "Second line", "Third line" };
-            File.WriteAllLines(folderName1, lines);
-
-
-            // Example #2: Write one string to a text file.
-            string text = "A class is the most powerful data type in C#. Like a structure, " +
-                           "a class defines the data and behavior of the data type. ";
-            // WriteAllText creates a file, writes the specified string to the file,
-            // and then closes the file.    You do NOT need to call Flush() or Close().
-            File.WriteAllText(folderName2, text);
-
-            // Example #3: Write only some strings in an array to a file.
-            // The using statement automatically flushes AND CLOSES the stream and calls 
-            // IDisposable.Dispose on the stream object.
-            // NOTE: do not use FileStream for text files because it writes bytes, but StreamWriter
-            // encodes the output as text.
-            using (StreamWriter file = new StreamWriter(folderName3))
+            for (int i = 1; i < 20; i++)
             {
-                foreach (string line in lines)
+                waitHandler.WaitOne();
+                Console.WriteLine("Пишет в файл ГЛАВНЫЙ поток:");
+
+                using (StreamWriter sw = new StreamWriter(fullFolderFileName, true, Encoding.Default))
                 {
-                    // If the line doesn't contain the word 'Second', write the line to the file.
-                    if (!line.Contains("Second"))
-                    {
-                        file.WriteLine(line);
-                    }
+                    sw.WriteLine("Этот текст создан в ГЛАВНОМ потоке");
                 }
+                Thread.Sleep(200);
+                waitHandler.Set();
             }
-
-            // Example #4: Append new text to an existing file.
-            // The using statement automatically flushes AND CLOSES the stream and calls 
-            // IDisposable.Dispose on the stream object.
-            using (StreamWriter file = new StreamWriter(folderName1, true))
-            {
-                file.WriteLine("Fourth line");
-            }
-            */
+            
 
             Console.WriteLine("Press any key to exit.");
             Console.ReadKey();
         }
+
+        public static void Count()
+        {
+            
+                for (int i = 1; i < 20; i++)
+                {
+                waitHandler.WaitOne();
+                Console.ForegroundColor = ConsoleColor.Red;     // Устанавливаем красный цвет символов    
+                    Console.WriteLine("Пишет в файл ВТОРОЙ поток:");
+                    using (StreamWriter sw = new StreamWriter((string)fullFolderFileName, true, Encoding.Default))
+                    {
+                        sw.WriteLine("Этот текст создан во ВТОРОМ потоке");
+                    }
+                    Console.ResetColor(); // Устанавливаем белый цвет символов
+                    Thread.Sleep(300);
+                waitHandler.Set();
+            }
+                
+            
+        }
+
+
+
+        /*
+            try
+            {
+                Console.WriteLine("******считываем весь файл********");
+                using (StreamReader sr = new StreamReader(fullFolderFileName))
+                {
+                    Console.WriteLine(sr.ReadToEnd());
+                }
+
+                Console.WriteLine();
+                Console.WriteLine("******считываем построчно********");
+                using (StreamReader sr = new StreamReader(fullFolderFileName, Encoding.Default))
+                {
+                    string line;
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        Console.WriteLine(line);
+                    }
+                }
+
+                Console.WriteLine();
+                Console.WriteLine("******считываем блоками********");
+                using (StreamReader sr = new StreamReader(fullFolderFileName, Encoding.Default))
+                {
+                    char[] array = new char[4];
+                    // считываем 4 символа
+                    sr.Read(array, 0, 4);
+                    Console.WriteLine(array);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }*/
+
+        //******************************************работа с потоком*********************************************
+
+        /*  Thread t = Thread.CurrentThread;
+            t.Name = "Метод Main";
+            Console.WriteLine("Имя потока: {0}", t.Name);
+            Console.WriteLine("Запущен ли поток: {0}", t.IsAlive);
+            Console.WriteLine("Приоритет потока: {0}", t.Priority);
+            Console.WriteLine("Статус потока: {0}", t.ThreadState);
+            // получаем домен приложения
+            Console.WriteLine("Домен приложения: {0}", Thread.GetDomain().FriendlyName);
+
+    }    
+
+       /* class Program
+        {
+            static int x = 0;
+            static object locker = new object();
+            static void Main(string[] args)
+            {
+                for (int i = 0; i < 5; i++)
+                {
+                    Thread myThread = new Thread(Count);
+                    myThread.Name = "Поток " + i.ToString();
+                    myThread.Start();
+                }
+
+                Console.ReadLine();
+            }
+            public static void Count()
+            {
+                lock (locker)
+                {
+                    x = 1;
+                    for (int i = 1; i < 9; i++)
+                    {
+                        Console.WriteLine("{0}: {1}", Thread.CurrentThread.Name, x);
+                        x++;
+                        Thread.Sleep(100);
+                    }
+                }
+            }
+        }
+        */
+
     }
 }
