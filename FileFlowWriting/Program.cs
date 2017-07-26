@@ -43,7 +43,7 @@ namespace FileFlowWriting
                 }
             }
 
-            Thread myThread = new Thread(Count);
+            Thread myThread = new Thread(Second);
             myThread.Start();                         
             for (int i = 1; i < 20; i++)
             {
@@ -61,7 +61,7 @@ namespace FileFlowWriting
             Console.ReadKey();
         }
 
-        public static void Count()
+        public static void Second()
         {            
             for (int i = 1; i < 20; i++)
             {
