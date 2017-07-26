@@ -15,11 +15,9 @@ namespace FileFlowWriting
 
         static void Main(string[] args)
         {
-            //******************************************Подготовительная работа с файлом*********************************************
+            //***Подготовительная работа с файлом***
             string folderName = @"c:\Temp"; // путь к файлу
-            string fileName = "Temp.txt";//  имя файла
-            
-
+            string fileName = "Temp.txt";//  имя файла         
             // Создаем дирректорию если ее нет
             DirectoryInfo dirInfo = new DirectoryInfo(folderName);
             if (!dirInfo.Exists)
@@ -28,7 +26,6 @@ namespace FileFlowWriting
             }
 
             fullFolderFileName = Path.Combine(folderName, fileName);
-
             // Создаем файл если его нет
             FileInfo fi = new FileInfo(fullFolderFileName);
             if (!fi.Exists)
@@ -43,15 +40,12 @@ namespace FileFlowWriting
                 }
             }
 
-            // создаем новый поток
             Thread myThread = new Thread(Count);
-            myThread.Start(); // запускаем поток
-                        
+            myThread.Start();                         
             for (int i = 1; i < 20; i++)
             {
                 waitHandler.WaitOne();
                 Console.WriteLine("Пишет в файл ГЛАВНЫЙ поток:");
-
                 using (StreamWriter sw = new StreamWriter(fullFolderFileName, true, Encoding.Default))
                 {
                     sw.WriteLine("Этот текст создан в ГЛАВНОМ потоке");
@@ -64,8 +58,7 @@ namespace FileFlowWriting
         }
 
         public static void Count()
-        {
-            
+        {            
             for (int i = 1; i < 20; i++)
             {
                 waitHandler.WaitOne();
