@@ -12,6 +12,7 @@ namespace FileFlowWriting
     {
         static AutoResetEvent waitHandler = new AutoResetEvent(true);
         static string fullFolderFileName;
+        private static object locked = new object();
 
         static void Main(string[] args)
         {
@@ -44,14 +45,15 @@ namespace FileFlowWriting
             myThread.Start();                         
             for (int i = 1; i < 20; i++)
             {
-                waitHandler.WaitOne();
-                Console.WriteLine("Пишет в файл ГЛАВНЫЙ поток:");
-                using (StreamWriter sw = new StreamWriter(fullFolderFileName, true, Encoding.Default))
+                lock (locked)
                 {
-                    sw.WriteLine("Этот текст создан в ГЛАВНОМ потоке");
+                    Console.WriteLine("Пишет в файл ГЛАВНЫЙ поток:");
+                    using (StreamWriter sw = new StreamWriter(fullFolderFileName, true, Encoding.Default))
+                    {
+                        sw.WriteLine("Этот текст создан в ГЛАВНОМ потоке");
+                    }
+                    Thread.Sleep(200);
                 }
-                Thread.Sleep(200);
-                waitHandler.Set();
             }            
             Console.WriteLine("Press any key to exit.");
             Console.ReadKey();
@@ -61,16 +63,17 @@ namespace FileFlowWriting
         {            
             for (int i = 1; i < 20; i++)
             {
-                waitHandler.WaitOne();
-                Console.ForegroundColor = ConsoleColor.Red;     // Устанавливаем красный цвет символов    
-                Console.WriteLine("Пишет в файл ВТОРОЙ поток:");
-                using (StreamWriter sw = new StreamWriter((string)fullFolderFileName, true, Encoding.Default))
+                lock (locked)
                 {
-                     sw.WriteLine("Этот текст создан во ВТОРОМ потоке");
+                    Console.ForegroundColor = ConsoleColor.Red;     // Устанавливаем красный цвет символов    
+                    Console.WriteLine("Пишет в файл ВТОРОЙ поток:");
+                    using (StreamWriter sw = new StreamWriter((string)fullFolderFileName, true, Encoding.Default))
+                    {
+                        sw.WriteLine("Этот текст создан во ВТОРОМ потоке");
+                    }
+                    Console.ResetColor(); // Устанавливаем белый цвет символов
+                    Thread.Sleep(300);
                 }
-                Console.ResetColor(); // Устанавливаем белый цвет символов
-                Thread.Sleep(300);
-                waitHandler.Set();
             }                 
         }      
     }
